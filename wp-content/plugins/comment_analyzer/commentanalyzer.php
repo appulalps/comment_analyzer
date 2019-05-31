@@ -19,17 +19,18 @@ register_activation_hook( __FILE__, 'activate_comment_analyzer');
 register_deactivation_hook( __FILE__, 'deactivate_comment_analyzer');
 register_uninstall_hook( __FILE__, 'uninstall_comment_analyzer');
 
-add_action( 'admin_menu', 'comment_analyzer_menu' );
-add_action( 'comment_post','save_comment_analizer_value' );
+
+add_action('admin_menu', 'comment_analyzer_menu');
+add_action( 'comment_post','save_comment_analyzer_value' );
 add_action( 'edit_comment','update_comment_analyzer_value' );
 add_action( 'current_screen','total_comment_analyzer_count' );
 
 //add_action( 'comment_analyzer_cron', 'find_all_comment_analyzer_value' );
-//add_filter( 'comment_text','add_comment_analyzer_images_with_comments', 10, 2);
-//add_filter( 'plugin_action_links', 'add_comment_analyzer_settings_link', 10, 2 );
+add_filter( 'comment_text','add_comment_analyzer_images_with_comments', 10, 2);
+add_filter( 'plugin_action_links', 'add_comment_analyzer_settings_link', 10, 2 );
 
-if (class_exists("CommentAnalizerAdmin")) {
-	$ObjCommentAnalyzerPlugin = new CommentAnalizerAdmin();
+if (class_exists("CommentAnalyzerAdmin")) {
+	$ObjCommentAnalyzerPlugin = new CommentAnalyzerAdmin();
 }
 
 function activate_comment_analyzer(){
@@ -51,5 +52,20 @@ function uninstall_comment_analyzer() {
 	$wpdb->query($sql);
 	delete_option( 'comment_analyzer_options');
 }
+
+function total_comment_analyzer_count($screen) {
+	if ( $screen->id != 'edit-comments' )
+        return;
+	add_filter( 'comment_status_links', 'comment_status_links_with_sentimental_values' );
+}
+
+function add_comment_analyzer_settings_link($links, $file){
+	if ( plugin_basename( __FILE__ ) == $file ) {
+		$settings_link = '<a href="' . admin_url( 'admin.php?page=comment-analyzer' ) . '">' . __( 'Settings', 'comment-analyzer' ) . '</a>';
+		array_push( $links, $settings_link );
+	}
+	return $links;
+}
+
 
 ?>
