@@ -1,5 +1,5 @@
 === Comment Analyzer ===
-Contributors: matt, ryan, andy, mdawaffe, tellyworth, josephscott, lessbloat, eoigal, cfinke, automattic, jgs, procifer, stephdau
+Contributors: Appulal pushppalal Sinika
 Tags: akismet, comments, spam, antispam, anti-spam, anti spam, comment moderation, comment spam, contact form spam, spam comments
 Requires at least: 4.0
 Tested up to: 5.0
