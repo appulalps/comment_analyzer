@@ -25,7 +25,6 @@ add_action( 'comment_post','save_comment_analyzer_value' );
 add_action( 'edit_comment','update_comment_analyzer_value' );
 add_action( 'current_screen','total_comment_analyzer_count' );
 
-//add_action( 'comment_analyzer_cron', 'find_all_comment_analyzer_value' );
 add_filter( 'comment_text','add_comment_analyzer_images_with_comments', 10, 2);
 add_filter( 'plugin_action_links', 'add_comment_analyzer_settings_link', 10, 2 );
 
@@ -81,15 +80,15 @@ function comment_status_links_with_analyzer_values($status_links) {
 			$neutral	= $good = $bad = 0;
 			foreach($comments as $sentiment)
 			{
-				if($sentiment->comment_sentiment_value == 'good'){
+				if($sentiment->comment_analyzer_value == 'good'){
 					$good	+=1;
-				}else if ($sentiment->comment_sentiment_value == 'bad'){
+				}else if ($sentiment->comment_analyzer_value == 'bad'){
 					$bad +=1;
-				}else if ($sentiment->comment_sentiment_value == 'neutral'){
+				}else if ($sentiment->comment_analyzer_value == 'neutral'){
 					$neutral +=1;
 				}
 			}
-			$status_links['sentiment']	= '&nbsp;&nbsp;&nbsp;<a href="javascript:void(0);" style="cursor:default;"><img src="'.plugins_url('images/bad.png', __FILE__ ).'" title="Bad Comments" align="absmiddle"><span class="count">&nbsp;(<span class="bad-count">'.$bad.'</span>)</span></a>
+			$status_links['analyzer']	= '&nbsp;&nbsp;&nbsp;<a href="javascript:void(0);" style="cursor:default;"><img src="'.plugins_url('images/bad.png', __FILE__ ).'" title="Bad Comments" align="absmiddle"><span class="count">&nbsp;(<span class="bad-count">'.$bad.'</span>)</span></a>
 			<a href="javascript:void(0);" style="cursor:default;"><img src="'.plugins_url('images/neutral.png', __FILE__ ).'" title="Neutral Comments" align="absmiddle"><span class="count">&nbsp;(<span class="neutral-count">'.$neutral.'</span>)</span></a>
 			<a href="javascript:void(0);" style="cursor:default;"><img src="'.plugins_url('images/good.png', __FILE__ ).'"  title="Good Comments" align="absmiddle"><span class="count">&nbsp;(<span class="good-count">'.$good.'</span>)</span></a>
 			';

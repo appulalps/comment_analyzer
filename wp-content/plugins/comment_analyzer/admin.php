@@ -69,7 +69,7 @@ if (!class_exists("CommentAnalyserAdmin")) {
 								<br>  <p class="description">Please request for api key <a href="https://www.meaningcloud.com/developer/login/" target="_blank">here</a></p></td>
 							 </tr>
 							 <tr class="form-field form-required">
-							  <th scope="row">Sentimental analysis API Url <span class="description">(required)</span></th>
+							  <th scope="row">Meaningcloud.com API Url <span class="description">(required)</span></th>
 							  <td><input type="text" name="apiurl" class="input_kwd" value="<?php echo esc_attr($commentAnalyzerOptions['apiurl']); ?>" required />
 								  <br> <p class="description">Sample Url - https://api.meaningcloud.com/sentiment-2.1</p></td>
 							 </tr>
@@ -113,25 +113,7 @@ function save_comment_analyzer_value() {
 			$posts			= get_post($postID);
 			$postDetails	= array ($posts);
 			$commentAnalyzerOptions = get_option('comment_analyzer_options');
-			/*$ipAddress		= $_SERVER['REMOTE_ADDR'];
-			$xml			= '<?xml version="1.0"?>
-								 <root>
-								 <apikey>'.$commentAnalyzerOptions['apikey'].'</apikey>
-								 <QueryItems>
-								  <query>
-									<id>1</id>
-									<brandname><![CDATA['.$postDetails[0]->post_title.']]></brandname>
-									<ipaddress><![CDATA['.$ipAddress.']]></ipaddress>
-									<paragraph><![CDATA['.$lastComment.']]></paragraph>
-								  </query>
-								</QueryItems>
-								</root>';
-			$params 		= array('searchXML' => $xml);
-			$client 		= new SoapClient($commentAnalyzerOptions['apiurl']."?wsdl");
-			$response 		= $client->GetScore($params);
-			$apiResult		= (array) $response;
-			$xmlData		= simplexml_load_string($apiResult['GetScoreResult']);
-			$apiSentimentResult	= $xmlData->result;*/
+	
 			$curl = curl_init();
 
 			curl_setopt_array($curl, array(
@@ -156,7 +138,7 @@ function save_comment_analyzer_value() {
 			 	$apiSentimentResult	= '';
 			} else {
 			  	$data = json_decode($response); 
-			  	//echo $data->score_tag;
+			  	
 			  	if(isset($data->score_tag)){
 			  		$apiSentimentResult	= $data->score_tag;
 			  	} else {
@@ -164,7 +146,7 @@ function save_comment_analyzer_value() {
 			  	}
 			}
 			if ( $apiSentimentResult == '' )
-				$sentiments	= 'No result';
+				$sentiments	= '';
 			else if( $apiSentimentResult == 'P+' || $apiSentimentResult == 'P' )
 				$sentiments	= 'good';
 			else if ( $apiSentimentResult == 'NEU' || $apiSentimentResult == 'NONE' )
@@ -219,7 +201,7 @@ function save_comment_analyzer_value() {
 			  	}
 			}
 			if ( $apiSentimentResult == '' )
-				$sentiments	= 'No result';
+				$sentiments	= '';
 			else if( $apiSentimentResult == 'P+' || $apiSentimentResult == 'P' )
 				$sentiments	= 'good';
 			else if ( $apiSentimentResult == 'NEU' || $apiSentimentResult == 'NONE' )
