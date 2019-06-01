@@ -41,7 +41,7 @@ function activate_comment_analyzer(){
 }
 
 function deactivate_comment_analyzer() {
-	$sentimentOptions = get_option('comment_analyzer_options');
+	$commentAnalyzerOptions = get_option('comment_analyzer_options');
 	update_option( 'comment_analyzer_options', $commentAnalyzerOptions );
 }
 
@@ -56,9 +56,47 @@ function uninstall_comment_analyzer() {
 function total_comment_analyzer_count($screen) {
 	if ( $screen->id != 'edit-comments' )
         return;
-	add_filter( 'comment_status_links', 'comment_status_links_with_sentimental_values' );
+	add_filter( 'comment_status_links', 'comment_status_links_with_analyzer_values' );
 }
 
+function comment_status_links_with_analyzer_values($status_links) {
+	if (is_admin()){
+		$commentAnalyzerOptions = get_option('comment_analyzer_options');
+		if ($commentAnalyzerOptions['admin']) {
+			$comment_status = isset( $_REQUEST['comment_status'] ) ? $_REQUEST['comment_status'] : 'all';
+			if ( !in_array( $comment_status, array( 'all', 'moderated', 'approved', 'spam', 'trash' ) ) )
+				$comment_status = 'all';
+			$post_id		= ($_REQUEST['p']) ? $_REQUEST['p'] : '';
+			$search			= ($_REQUEST['s']) ? $_REQUEST['s'] : '';
+			$commentType	= ($_REQUEST['comment_type']) ? $_REQUEST['comment_type'] : '';
+			$status_map 	= array(
+								'moderated' => 'hold',
+								'approved' => 'approve',
+								'all' => '',);
+			$arg		= array('status' => isset( $status_map[$comment_status] ) ? $status_map[$comment_status] : $comment_status,
+								'post_id' => $post_id,
+								'search' => $search,
+								'type' => $commentType,);
+			$comments 	= get_comments( $arg );
+			$neutral	= $good = $bad = 0;
+			foreach($comments as $sentiment)
+			{
+				if($sentiment->comment_sentiment_value == 'good'){
+					$good	+=1;
+				}else if ($sentiment->comment_sentiment_value == 'bad'){
+					$bad +=1;
+				}else if ($sentiment->comment_sentiment_value == 'neutral'){
+					$neutral +=1;
+				}
+			}
+			$status_links['sentiment']	= '&nbsp;&nbsp;&nbsp;<a href="javascript:void(0);" style="cursor:default;"><img src="'.plugins_url('images/bad.png', __FILE__ ).'" title="Bad Comments" align="absmiddle"><span class="count">&nbsp;(<span class="bad-count">'.$bad.'</span>)</span></a>
+			<a href="javascript:void(0);" style="cursor:default;"><img src="'.plugins_url('images/neutral.png', __FILE__ ).'" title="Neutral Comments" align="absmiddle"><span class="count">&nbsp;(<span class="neutral-count">'.$neutral.'</span>)</span></a>
+			<a href="javascript:void(0);" style="cursor:default;"><img src="'.plugins_url('images/good.png', __FILE__ ).'"  title="Good Comments" align="absmiddle"><span class="count">&nbsp;(<span class="good-count">'.$good.'</span>)</span></a>
+			';
+		}
+	}
+	return $status_links;
+}
 function add_comment_analyzer_settings_link($links, $file){
 	if ( plugin_basename( __FILE__ ) == $file ) {
 		$settings_link = '<a href="' . admin_url( 'admin.php?page=comment-analyzer' ) . '">' . __( 'Settings', 'comment-analyzer' ) . '</a>';

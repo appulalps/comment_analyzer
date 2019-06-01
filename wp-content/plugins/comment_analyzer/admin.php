@@ -83,48 +83,7 @@ if (!class_exists("CommentAnalyserAdmin")) {
 		<?php
 	  }
 
-	  function save_comment_sentimental_value() {
-			global $wpdb;
-			$comments		= get_comments();
-			$comment		= (array) $comments[0];
-			$lastComment	= $comment['comment_content'];
-			$lastCommentID	= $comment['comment_ID'];
-			$postID			= $comment['comment_post_ID'];
-			$posts			= get_post($postID);
-			$postDetails	= array ($posts);
-			$sentimentOptions = get_option('sentiment_analysis_options');
-			$ipAddress		= $_SERVER['REMOTE_ADDR'];
-			$xml			= '<?xml version="1.0"?>
-								 <root>
-								 <apikey>'.$sentimentOptions['apikey'].'</apikey>
-								 <QueryItems>
-								  <query>
-									<id>1</id>
-									<brandname><![CDATA['.$postDetails[0]->post_title.']]></brandname>
-									<ipaddress><![CDATA['.$ipAddress.']]></ipaddress>
-									<paragraph><![CDATA['.$lastComment.']]></paragraph>
-								  </query>
-								</QueryItems>
-								</root>';
-			$params 		= array('searchXML' => $xml);
-			$client 		= new SoapClient($sentimentOptions['apiurl']."?wsdl");
-			$response 		= $client->GetScore($params);
-			$apiResult		= (array) $response;
-			$xmlData		= simplexml_load_string($apiResult['GetScoreResult']);
-			$apiSentimentResult	= $xmlData->result;
-			if ( $apiSentimentResult == 'Invalid API Key.' )
-				$sentiments	= '';
-			else if( $apiSentimentResult >= -0.25 && $apiSentimentResult <= 0.25 )
-				$sentiments	= 'neutral';
-			else if ( $apiSentimentResult < -0.25 )
-				$sentiments	= 'bad';
-			else if ( $apiSentimentResult > 0.25 )
-				$sentiments	= 'good';
-			$tableName		= $wpdb->prefix . "comments";
-			$data			= array ('comment_sentiment_value' => $sentiments);
-			$where			= array ('comment_ID' => $lastCommentID);
-			$wpdb->update( $tableName, $data, $where, $format = null, $where_format = null );
-		}
+	  
 	}
 }
 
@@ -143,7 +102,136 @@ function display_comment_analyzer_options() {
 	}
 	$ObjCommentAnalyzerPlugin->printAdminPage();
 }
+function save_comment_analyzer_value() {
 
+			global $wpdb;
+			$comments		= get_comments();
+			$comment		= (array) $comments[0];
+			$lastComment	= $comment['comment_content'];
+			$lastCommentID	= $comment['comment_ID'];
+			$postID			= $comment['comment_post_ID'];
+			$posts			= get_post($postID);
+			$postDetails	= array ($posts);
+			$commentAnalyzerOptions = get_option('comment_analyzer_options');
+			/*$ipAddress		= $_SERVER['REMOTE_ADDR'];
+			$xml			= '<?xml version="1.0"?>
+								 <root>
+								 <apikey>'.$commentAnalyzerOptions['apikey'].'</apikey>
+								 <QueryItems>
+								  <query>
+									<id>1</id>
+									<brandname><![CDATA['.$postDetails[0]->post_title.']]></brandname>
+									<ipaddress><![CDATA['.$ipAddress.']]></ipaddress>
+									<paragraph><![CDATA['.$lastComment.']]></paragraph>
+								  </query>
+								</QueryItems>
+								</root>';
+			$params 		= array('searchXML' => $xml);
+			$client 		= new SoapClient($commentAnalyzerOptions['apiurl']."?wsdl");
+			$response 		= $client->GetScore($params);
+			$apiResult		= (array) $response;
+			$xmlData		= simplexml_load_string($apiResult['GetScoreResult']);
+			$apiSentimentResult	= $xmlData->result;*/
+			$curl = curl_init();
+
+			curl_setopt_array($curl, array(
+			  CURLOPT_URL => $commentAnalyzerOptions['apiurl'],
+			  CURLOPT_RETURNTRANSFER => true,
+			  CURLOPT_ENCODING => "",
+			  CURLOPT_MAXREDIRS => 10,
+			  CURLOPT_TIMEOUT => 30,
+			  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			  CURLOPT_CUSTOMREQUEST => "POST",
+			  CURLOPT_POSTFIELDS => "key=".$commentAnalyzerOptions['apikey']."&lang=en&txt=".$lastComment,
+			  CURLOPT_HTTPHEADER => array(
+			    "content-type: application/x-www-form-urlencoded"
+			  ),
+			));
+			$response 	= curl_exec($curl);
+			$err 		= curl_error($curl);
+
+			curl_close($curl);
+
+			if ($err) {
+			 	$apiSentimentResult	= '';
+			} else {
+			  	$data = json_decode($response); 
+			  	//echo $data->score_tag;
+			  	if(isset($data->score_tag)){
+			  		$apiSentimentResult	= $data->score_tag;
+			  	} else {
+					$apiSentimentResult	= '';
+			  	}
+			}
+			if ( $apiSentimentResult == '' )
+				$sentiments	= 'No result';
+			else if( $apiSentimentResult == 'P+' || $apiSentimentResult == 'P' )
+				$sentiments	= 'good';
+			else if ( $apiSentimentResult == 'NEU' || $apiSentimentResult == 'NONE' )
+				$sentiments	= 'neutral';
+			else if ( $apiSentimentResult == 'N' || $apiSentimentResult == 'N+' )
+				$sentiments	= 'bad';
+
+			$tableName		= $wpdb->prefix . "comments";
+			$data			= array ('comment_analyzer_value' => $sentiments);
+			$where			= array ('comment_ID' => $lastCommentID);
+			$wpdb->update( $tableName, $data, $where, $format = null, $where_format = null );
+		}
+
+		function update_comment_analyzer_value($comment_ID) {
+			global $wpdb;
+			$comment		= get_comment($comment_ID);
+			$lastComment	= $comment->comment_content;
+			$lastCommentID	= $comment->comment_ID;
+			$postID			= $comment->comment_post_ID;
+			$posts			= get_post($postID);
+			$postDetails	= array ($posts);
+			$commentAnalyzerOptions = get_option('comment_analyzer_options');
+			$curl = curl_init();
+
+			curl_setopt_array($curl, array(
+			  CURLOPT_URL => $commentAnalyzerOptions['apiurl'],
+			  CURLOPT_RETURNTRANSFER => true,
+			  CURLOPT_ENCODING => "",
+			  CURLOPT_MAXREDIRS => 10,
+			  CURLOPT_TIMEOUT => 30,
+			  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			  CURLOPT_CUSTOMREQUEST => "POST",
+			  CURLOPT_POSTFIELDS => "key=".$commentAnalyzerOptions['apikey']."&lang=en&txt=".$lastComment,
+			  CURLOPT_HTTPHEADER => array(
+			    "content-type: application/x-www-form-urlencoded"
+			  ),
+			));
+			$response 	= curl_exec($curl);
+			$err 		= curl_error($curl);
+
+			curl_close($curl);
+
+			if ($err) {
+			 	$apiSentimentResult	= '';
+			} else {
+			  	$data = json_decode($response); 
+			  	
+			  	if(isset($data->score_tag)){
+			  		$apiSentimentResult	= $data->score_tag;
+			  	} else {
+					$apiSentimentResult	= '';
+			  	}
+			}
+			if ( $apiSentimentResult == '' )
+				$sentiments	= 'No result';
+			else if( $apiSentimentResult == 'P+' || $apiSentimentResult == 'P' )
+				$sentiments	= 'good';
+			else if ( $apiSentimentResult == 'NEU' || $apiSentimentResult == 'NONE' )
+				$sentiments	= 'neutral';
+			else if ( $apiSentimentResult == 'N' || $apiSentimentResult == 'N+' )
+				$sentiments	= 'bad';
+
+			$tableName		= $wpdb->prefix . "comments";
+			$data			= array ('comment_analyzer_value' => $sentiments);
+			$where			= array ('comment_ID' => $lastCommentID);
+			$wpdb->update( $tableName, $data, $where, $format = null, $where_format = null );
+		}
 function add_comment_analyzer_images_with_comments($comment_text,$comment_ID) {
 	$commentAnalyzerOptions 	= get_option('comment_analyzer_options');
 	$comment			= get_comment($comment_ID);
