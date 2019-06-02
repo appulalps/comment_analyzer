@@ -56,11 +56,11 @@ if (!class_exists("CommentAnalyserAdmin")) {
 						<table class="form-table analyzer-settings">
 							<tbody>
 							 <tr class="form-field form-required">
-							  <th scope="row">Show analyzer icon on front end </th>
+							  <th scope="row">Show sentimental icon on front end </th>
 							  <td><label for="send_password"><input type="checkbox" name="frontend" <?php checked('1', $commentAnalyzerOptions['frontend']); ?> value="1" ></label></td>
 							 </tr>
 							 <tr class="form-field form-required">
-							  <th scope="row">Show comment analyzer icon on admin side </th>
+							  <th scope="row">Show sentimental icon on admin side </th>
 							  <td><input type="checkbox" name="admin" <?php checked('1', $commentAnalyzerOptions['admin']); ?> value="1" ></td>
 							 </tr>
 							 <tr class="form-field form-required">
