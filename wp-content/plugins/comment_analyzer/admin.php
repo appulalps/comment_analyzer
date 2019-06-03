@@ -66,7 +66,7 @@ if (!class_exists("CommentAnalyserAdmin")) {
 							 <tr class="form-field form-required">
 							  <th scope="row">Meaningcloud.com API key <span class="description">(required)</span></th>
 							  <td><input type="text" name="apikey" class="input_kwd"  value="<?php echo esc_attr($commentAnalyzerOptions['apikey']); ?>" required />
-								<br>  <p class="description">Please request for api key <a href="https://www.meaningcloud.com/developer/login/" target="_blank">here</a></p></td>
+								<br>  <p class="description">Please request for api key <a href="https://www.meaningcloud.com/developer/create-account" target="_blank">here</a></p></td>
 							 </tr>
 							 <tr class="form-field form-required">
 							  <th scope="row">Meaningcloud.com API Url <span class="description">(required)</span></th>
