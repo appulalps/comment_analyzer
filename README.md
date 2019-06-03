@@ -8,7 +8,7 @@ Donwload the files and keep this folder inside the wordpress plugin. Read about 
 
 ### Prerequisites
 
-Need CURL fir calling the API.
+Need CURL for calling the API.
 
 
 ### Installing
